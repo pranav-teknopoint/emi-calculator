@@ -54,6 +54,7 @@ h1{
   padding: 5px;
   width: 100px;
   border-radius: 5px;
+  font-size: 18px;
   font-weight: 600;
 }
 
@@ -257,4 +258,5 @@ h1{
   font-weight: 200;
   font-size: 20px;
   color: white;
+  cursor: pointer;
 }

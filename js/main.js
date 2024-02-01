@@ -4,8 +4,9 @@ $(document).ready(function () {
   let loan_duration_monthly = loan_duration_yearly * 12;
   let loan_roi = eval(12 / 12 / 100);
   let loan_roi_pa = 10.99;
-  document.getElementById("loan_amount_input").value = loan_amount;
-  document.getElementById("loan_duration_input").value = loan_duration_monthly;
+  document.getElementById("loan_amount_input").value =
+    Intl.NumberFormat("en-IN").format(loan_amount);
+  document.getElementById("loan_duration_input").value = loan_duration_yearly;
   document.getElementById("loan_rate_input").value = loan_roi_pa;
 
   $(".js-range-slider-one").ionRangeSlider({
@@ -14,7 +15,8 @@ $(document).ready(function () {
     prefix: "₹",
     onChange: function (data) {
       loan_amount = data.from;
-      document.getElementById("loan_amount_input").value = loan_amount;
+      document.getElementById("loan_amount_input").value =
+        Intl.NumberFormat("en-IN").format(loan_amount);
     },
     onFinish: function () {
       emi_calculate();
@@ -24,15 +26,16 @@ $(document).ready(function () {
   });
 
   $(".js-range-slider-two").ionRangeSlider({
-    min: 12,
-    max: 72,
-    postfix: " Months",
+    min: 1,
+    max: 6,
+    postfix: " Years",
     onChange: function (data) {
-      loan_duration_monthly = data.from;
+      loan_duration_yearly = data.from;
       document.getElementById("loan_duration_input").value =
-        loan_duration_monthly;
+        loan_duration_yearly;
     },
     onFinish: function () {
+      loan_duration_monthly = loan_duration_yearly * 12;
       emi_calculate();
       mychart.destroy();
       createChart();
@@ -65,9 +68,12 @@ $(document).ready(function () {
           e.target.classList.add("selected");
           e.target.nextElementSibling.classList.remove("selected");
         }
-        loan_duration_yearly = 1;
+        loan_duration_yearly = (loan_duration_monthly / 12).toFixed(0);
         document.getElementById("loan_duration_input").value =
           loan_duration_yearly;
+        emi_calculate();
+        mychart.destroy();
+        createChart();
         document
           .getElementById("loan_duration_input")
           .addEventListener("input", function (e) {
@@ -76,6 +82,7 @@ $(document).ready(function () {
               my_range.update({
                 from: `${e.target.value}`,
               });
+              loan_duration_monthly = loan_duration_yearly * 12;
               emi_calculate();
               mychart.destroy();
               createChart();
@@ -85,7 +92,7 @@ $(document).ready(function () {
         my_range.update({
           min: 1,
           max: 6,
-          from: 1,
+          from: `${loan_duration_yearly}`,
           postfix: " Years",
           onChange: function (data) {
             loan_duration_yearly = data.from;
@@ -93,6 +100,8 @@ $(document).ready(function () {
               loan_duration_yearly;
           },
           onFinish: function () {
+            loan_duration_monthly = loan_duration_yearly * 12;
+
             emi_calculate();
             mychart.destroy();
             createChart();
@@ -103,7 +112,7 @@ $(document).ready(function () {
           e.target.classList.add("selected");
           e.target.previousElementSibling.classList.remove("selected");
         }
-        loan_duration_monthly = 12;
+        loan_duration_monthly = loan_duration_yearly * 12;
         document
           .getElementById("loan_duration_input")
           .addEventListener("input", function (e) {
@@ -117,10 +126,14 @@ $(document).ready(function () {
               createChart();
             }
           });
+        emi_calculate();
+        mychart.destroy();
+        createChart();
         let my_range = $(".js-range-slider-two").data("ionRangeSlider");
         my_range.update({
           min: 12,
           max: 72,
+          from: `${loan_duration_monthly}`,
           postfix: " Months",
           onChange: function (data) {
             loan_duration_monthly = data.from;
@@ -133,7 +146,8 @@ $(document).ready(function () {
             createChart();
           },
         });
-        document.getElementById("loan_duration_input").value = loan_duration_monthly;
+        document.getElementById("loan_duration_input").value =
+          loan_duration_monthly;
       }
     });
   });
@@ -141,12 +155,20 @@ $(document).ready(function () {
   document
     .getElementById("loan_amount_input")
     .addEventListener("input", function (e) {
-      if (3500000 >= e.target.value && e.target.value >= 75000) {
+      let input = e.target.value.split(",").join("");
+      if (3500000 >= input && input >= 75000) {
         let my_range = $(".js-range-slider-one").data("ionRangeSlider");
         my_range.update({
-          from: `${e.target.value}`,
+          from: `${input}`,
         });
       }
+    });
+  document
+    .getElementById("loan_amount_input")
+    .addEventListener("blur", function (e) {
+      let input = e.target.value.split(",").join("");
+      document.getElementById("loan_amount_input").value =
+        Intl.NumberFormat("en-IN").format(input);
     });
 
   document
@@ -185,14 +207,16 @@ $(document).ready(function () {
       type: "pie",
       data: data,
       options: {
-        useBorderRadius: true,
         backgroundColor: ["#2e93eb", "#d8e024"],
-        borderWidth: 0,
-        borderAlign: "center",
+        borderWidth: 0.5,
+        borderAlign: "inner",
         rotation: 90,
         plugins: {
           legend: {
             display: false,
+          },
+          tooltip: {
+            enabled: false,
           },
         },
       },
